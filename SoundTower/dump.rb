@@ -10,55 +10,60 @@ require 'pp'
 # Header
 #
 ppqn = 480
+tempo = 200;
 seq = MIDI::Sequence.new()
 File.open(ARGV[0], 'rb') do |file|
   seq.read(file) do |track, num_tracks, i|
-    puts "read track #{track ? track.name : ''} (#{i} of #{num_tracks})"
+    #puts "read track #{track ? track.name : ''} (#{i} of #{num_tracks})"
   end
-  p = seq.ppqn
+  ppqn = seq.ppqn
 end
 
 
 #
 # Data
 #
+data = {}
 include MIDI
 seq.each do |track|
-  ##pp track.ppqn
-  puts "*** track name \"#{track.name}\""
-  puts "instrument name \"#{track.instrument}\""
-  puts "#{track.events.length} events"
-
-  tempo = 114514
+  #puts "*** track name \"#{track.name}\""
+  #puts "instrument name \"#{track.instrument}\""
+  #puts "#{track.events.length} events"
+  
   track.each do |event|
-    # tempo
-    if event.kind_of?(MIDI::Tempo)
-      tempo = event.tempo
-    end
-
-    # Skip
+	tempo = event.tempo if event.kind_of?(MIDI::Tempo)
     next unless event.kind_of?(MIDI::NoteEvent)
 
-    freq = 440.0 * (2.0 ** ((event.note - 69) / 12))
-    #time = (event.delta_time / ppqn) * tempo
-    time = event.delta_time
+	time = event.time_from_start
+    freq = (440.0 * (2.0 ** ((event.note - 69.0) / 12.0))).round
     velocity = event.velocity
     channel = event.channel
+	duration = (((event.delta_time.to_f / ppqn.to_f) * tempo.to_f) * 0.001).round
+	note_event = event.kind_of?(MIDI::NoteOn) ? 'ON' : 'OFF'
 
-    e = "Unknown"
-    if event.kind_of?(MIDI::NoteOff)
-      e = "OFF"
-    elsif event.kind_of?(MIDI::NoteOn)
-      e = "ON"
-    elsif event.kind_of?(MIDI::PolyPressure)
-      e = "PolyPressure"
-    end
-
-    puts "#{e}\t : (#{freq}\t#{time}) : #{velocity}\t#{channel}"
-
-    #puts event.data if event.kind_of?(MIDI::MetaEvent) &&
-    #[META_TEXT, META_COPYRIGHT, META_SEQ_NAME, META_INSTRUMENT,
-    #  META_LYRIC, META_CUE, META_MARKER].include?(event.meta_type)
+    data[time] = [] unless data.key?(time)
+	data[time] << {:event => note_event, :freq => freq, :v => velocity, :ch => channel, :duration => duration}
   end
 end
 
+
+#
+# mbed
+#
+data.each_value do | each |
+  each.each do | each_each |
+    next if (each_each[:duration] == 0)
+	
+	duration = (each_each[:duration] * 0.001).round(3)
+	if (each_each[:event] == 'ON')
+	  puts "wait(#{duration});"
+	elsif (each_each[:event] == 'OFF')
+	  puts "buzzer.beep(#{each_each[:freq]}, #{duration});"
+    end
+  end
+end
+
+
+
+
+#pp data
