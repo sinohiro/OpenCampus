@@ -56,9 +56,9 @@ data.each_value do | each |
 	
 	duration = (each_each[:duration] * 0.001).round(3)
 	if (each_each[:event] == 'ON')
-	  puts "wait(#{duration});"
+          sleep duration
 	elsif (each_each[:event] == 'OFF')
-	  puts "buzzer.beep(#{each_each[:freq]}, #{duration});"
+	  system("beep -f #{each_each[:freq]} -l #{each_each[:duration]}")
     end
   end
 end
