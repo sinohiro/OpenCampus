@@ -6,64 +6,58 @@ require 'midilib/sequence'
 require 'midilib/consts'
 require 'pp'
 
-#
-# Header
-#
-ppqn = 480
-tempo = 200;
-seq = MIDI::Sequence.new()
-File.open(ARGV[0], 'rb') do |file|
-  seq.read(file) do |track, num_tracks, i|
-    #puts "read track #{track ? track.name : ''} (#{i} of #{num_tracks})"
-  end
-  ppqn = seq.ppqn
-end
+class Beep
+  include MIDI
 
-
-#
-# Data
-#
-data = {}
-include MIDI
-seq.each do |track|
-  #puts "*** track name \"#{track.name}\""
-  #puts "instrument name \"#{track.instrument}\""
-  #puts "#{track.events.length} events"
+  def initialize(file, mbed_flg)
+    @is_mbed = mbed_flg
   
-  track.each do |event|
-	tempo = event.tempo if event.kind_of?(MIDI::Tempo)
-    next unless event.kind_of?(MIDI::NoteEvent)
-
-	time = event.time_from_start
-    freq = (440.0 * (2.0 ** ((event.note - 69.0) / 12.0))).round
-    velocity = event.velocity
-    channel = event.channel
-	duration = (((event.delta_time.to_f / ppqn.to_f) * tempo.to_f) * 0.001).round
-	note_event = event.kind_of?(MIDI::NoteOn) ? 'ON' : 'OFF'
-
-    data[time] = [] unless data.key?(time)
-	data[time] << {:event => note_event, :freq => freq, :v => velocity, :ch => channel, :duration => duration}
-  end
-end
-
-
-#
-# mbed
-#
-data.each_value do | each |
-  each.each do | each_each |
-    next if (each_each[:duration] == 0)
-	
-	duration = (each_each[:duration] * 0.001).round(3)
-	if (each_each[:event] == 'ON')
-          sleep duration
-	elsif (each_each[:event] == 'OFF')
-	  system("beep -f #{each_each[:freq]} -l #{each_each[:duration]}")
+    @seq = MIDI::Sequence.new()
+    File.open(ARGV[0], 'rb') do |file|
+      @seq.read(file)
     end
   end
+  
+  def parse()
+    ppqn = @seq.ppqn
+    tempo = 200;
+
+    @seq.each do |track|  
+      track.each do |event|
+        tempo = event.tempo if event.kind_of?(MIDI::Tempo)
+        next unless event.kind_of?(MIDI::NoteEvent)
+        
+        duration = (((event.delta_time.to_f / ppqn.to_f) * tempo.to_f) * 0.000001).round(4)
+        next if duration == 0.0
+        
+        if event.kind_of?(MIDI::NoteOff)
+          freq = (440.0 * (2.0 ** ((event.note - 69.0) / 12.0))).round
+          beep(freq, duration)
+          next
+        end
+
+        suyasuya(duration)
+      end
+    end
+  end
+  
+  
+  private
+  def suyasuya(second) 
+    puts @is_mbed ? "wait(#{second});" : "sleep #{second}"
+  end
+
+  def beep(freq, second)
+    puts @is_mbed ? "buzzer.beep(#{freq}, #{second});" : "beep -f #{freq} -l #{second * 1000}"
+  end
 end
 
 
 
+if ARGV[0].nil?
+  puts "./dump.rb MidiFile ['mbed'||'pc']"
+  exit
+end
 
-#pp data
+midi = Beep.new(ARGV[0], (ARGV[1] || 'mbed') == 'mbed')
+midi.parse()
