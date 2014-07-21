@@ -16,7 +16,7 @@ class SerialMIDI
 			next unless (event == 0x80 || event == 0x90)
 
 			note, duration, velocity = parse(data)
-			play(event == 0x80, note, duration)
+			play(event == 0x90, note, duration)
 		end
 	end
 
@@ -57,7 +57,7 @@ class SerialMIDI
 
 		# 知らないとダメ
 		return if duration == 0
-		if onflg
+		unless onflg
 			puts "beep -f #{freq} -l #{duration * 1000}"
 		else
 			puts "sleep #{duration}"
