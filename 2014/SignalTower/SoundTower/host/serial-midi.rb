@@ -10,9 +10,12 @@ class SerialMIDI
 
 	def start()
 		loop do
-			data = @sp.read(3)
-			event, note, duration, velocity = parse(data)
-			next if event.nil?
+			event = @sp.read(1) & 0xf0
+			len = (event == 0xc0 || event == 0xdn) ? 1 : 2
+			data = @sp.read(len)
+			next unless (event == 0x80 || event == 0x90)
+
+			note, duration, velocity = parse(data)
 			play(event == 0x80, note, duration)
 		end
 	end
@@ -24,11 +27,8 @@ class SerialMIDI
 			bytes << byte
 		end
 
-		event = bytes[0] & 0xf0
-		return nil unless (event == 0x80 || event == 0x90)
-
-		note = bytes[1].to_i
-		velocity = bytes[2].to_i
+		note = bytes[0].to_i
+		velocity = bytes[1].to_i
 
 		if @time.nil?
 			@time = Time.now
@@ -39,7 +39,7 @@ class SerialMIDI
 			@time = now
 		end
 
-		return event, note, duration, velocity
+		return note, duration, velocity
 	end
 
 	def play(onflg, note, duration)
