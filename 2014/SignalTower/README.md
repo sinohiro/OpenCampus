@@ -1,17 +1,15 @@
 SignalTower
 ===========
 
-(オープン)きゃんぱすーなのん。
-
 ## 開発方法(暫定)
 
 ### 初回だけ
 
-    $ git clone https://github.com/KNCT-KPC/SignalTower.git
+    $ git clone https://github.com/KNCT-KPC/OpenCampus.git
 
 ### その他
 
-    $ cd SignalTower/
+    $ cd OpenCampus/2014/SignalTower/
     $ git pull
     $ vim programm.rb
     $ git add -A
