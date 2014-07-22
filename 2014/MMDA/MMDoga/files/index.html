@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<link rel="stylesheet/less" type="text/css" href="style.less">
+<title>動画を配信するぞ！</title>
+</head>
+<body>
+<div id="container">
+	<header>
+		<span>＼ Chromeで見てね! ／</span>
+		<h1>動画を配信するぞ！</h1>
+	</header>
+
+	<article>
+		<video src="sample.mp4">
+			<p>動画を再生するにはvideoタグをサポートしたブラウザが必要です。</p>
+		</video>
+	</article>
+
+	<article>
+		<section style="float:left">
+			<h2>Status</h2>
+			<p id="status">競技準備中...</p>
+		</section>
+
+		<section style="float:right">
+			<h2>Log</h2>
+			<div id="log"></div>
+		</section>
+	</article>
+
+	<footer>デスマを無くそうの会</footer>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="less.js" type="text/javascript"></script>
+<script src="jquery.js" type="text/javascript"></script>
+<script src="client.js" type="text/javascript"></script>
+</body>
+</html>
+
