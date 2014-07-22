@@ -17,14 +17,15 @@ server.listen(PORT);
 /*------------------------------------*/
 /*              WebSocket             */
 /*------------------------------------*/
-var NOW_VIDEO = null;
+var NOW_VIDEO = "1.mp4";
 console.log("\t-------");
 console.log("\tAccess! => http://(IPAddress):"+PORT+"/");
 console.log("\t-------");
 
 io.sockets.on('connection', function(socket) {
-	if (NOW_VIDEO) socket.emit('playVideo', NOW_VIDEO);
-	
+	socket.emit('playVideo', NOW_VIDEO);
+	console.log('\tnewConnection!');
+
 	socket.on('disconnect', function() {
 		console.log("\tDisConnect");
 	});
@@ -48,14 +49,15 @@ function handler(req, res) {
 			return res.end('403 Error!');
 		}
 
-		io.sockets.emit('playMovie', name);
+		io.sockets.emit('playVideo', name);
 		NOW_VIDEO = name;
 		res.writeHead(200);
 		res.end("OK");
 	}
 
 	// Static Contents
-	fs.readFile(__dirname + '/' + DIR_NAME + parse.pathname, function(err, content) {
+	var filename = (parse.pathname === '/') ? '/index.html' : parse.pathname;
+	fs.readFile(__dirname + '/' + DIR_NAME + filename, function(err, content) {
 		if (err) {
 			res.writeHead(404);
 			return res.end('Not Found');
