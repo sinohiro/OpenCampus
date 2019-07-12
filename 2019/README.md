@@ -8,6 +8,25 @@
 
 なお、タスク管理をして、各員の更新漏れがないようにしくつもり。
 
+---
+
+## 開発方法(暫定)
+
+### 初回だけ
+
+    $ git clone https://github.com/KNCT-KPC/OpenCampus.git
+
+### その他
+
+    $ cd OpenCampus/2019/"Your Repository"/
+    $ git pull
+    $ vim program.hoge
+    $ git add -A
+    $ git commit -m "変更内容"
+    $ git push origin master
+
+---
+
 更新するときに  `./(誰のディレクトリかわかる名前)/(プログラム)`  としてもらえると嬉しいです。  
 
 各ディレクトリ事に以下の内容を含めたREADMEを置いてください。
